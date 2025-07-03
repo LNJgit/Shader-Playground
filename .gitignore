@@ -1,0 +1,22 @@
+# CMake build
+build/
+bin/
+CMakeFiles/
+CMakeCache.txt
+*.cmake
+Makefile
+*.vcxproj*
+*.sln
+
+# Mac
+.DS_Store
+
+# Windows
+Thumbs.db
+*.obj
+*.pdb
+*.exe
+
+# Misc
+*.log
+
