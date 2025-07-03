@@ -13,6 +13,7 @@ file(GLOB_RECURSE HEADERS src/*.h)
 
 # Add executable
 add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS})
+target_compile_definitions(${PROJECT_NAME} PRIVATE GL_SILENCE_DEPRECATION)
 
 # Include directories
 include_directories(
