@@ -33,6 +33,15 @@ int main() {
         return -1;
     }
 
+    float quadVertices[] = {
+        -1.0f,  1.0f, 0.0f,
+        -1.0f, -1.0f, 0.0f,
+        1.0f, -1.0f, 0.0f,
+        -1.0f,  1.0f, 0.0f,
+        1.0f, -1.0f, 0.0f,
+        1.0f,  1.0f, 0.0f
+    };
+
 
     // Main loop
     while (!glfwWindowShouldClose(window)) {
