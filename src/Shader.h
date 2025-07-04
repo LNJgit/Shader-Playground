@@ -13,7 +13,7 @@ class Shader
     void use() const;
 
     //Uniform helper
-    void setUniform(const std::string& name, float v0, float v1) const;
+    void setUniform2f(const std::string& name, float v0, float v1) const;
 
     //Clean up GPU program
     ~Shader();

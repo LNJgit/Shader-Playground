@@ -4,12 +4,13 @@
 #include <iostream>
 
 
-std::string Shader::loadSource(const std::string& path) const
-{
-    std::ifstream file(path);
-    std::stringstream ss;
-    ss << file.rdbuf();
-
+std::string Shader::loadSource(const std::string& p) const {
+    std::ifstream f(p, std::ios::in);
+    if (!f.is_open()) {
+        std::cerr << "[Shader] Failed to open " << p << '\n';
+        return "";                           // <- returns empty string
+    }
+    std::stringstream ss; ss << f.rdbuf();
     return ss.str();
 }
 
@@ -54,7 +55,7 @@ Shader::Shader(const std::string& vertPath, const std::string& fragPath) {
 
 void Shader::use() const { glUseProgram(program_); }
 
-void Shader::setUniform(const std::string& name, float v0, float v1) const {
+void Shader::setUniform2f(const std::string& name, float v0, float v1) const {
     GLint loc = glGetUniformLocation(program_, name.c_str());
     glUniform2f(loc, v0, v1);
 }

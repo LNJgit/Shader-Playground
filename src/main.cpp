@@ -1,6 +1,7 @@
 #include <glad/gl.h>    
 #include <GLFW/glfw3.h> 
-#include <iostream>     
+#include <iostream>  
+#include "Shader.h"  
 
 int main() {
     // Initialize GLFW
@@ -42,19 +43,41 @@ int main() {
         1.0f,  1.0f, 0.0f
     };
 
+    GLuint vao, vbo;
+
+    glGenVertexArrays(1,&vao);
+    glGenBuffers(1,&vbo);
+    glBindVertexArray(vao);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3*sizeof(float), (void*)0);
+
+
+    Shader shader("../../shaders/default.vert", "../../shaders/default.frag");
+
+
 
     // Main loop
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
 
-        // Clear window with dark gray
-        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+        int w, h; glfwGetFramebufferSize(window, &w, &h);
+        glViewport(0,0,w,h);
+        glClearColor(0.1f,0.1f,0.1f,1.f);
         glClear(GL_COLOR_BUFFER_BIT);
+
+        shader.use();
+        shader.setUniform2f("iResolution", w,h);
+        glBindVertexArray(vao);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
 
         glfwSwapBuffers(window);
     }
 
     // Cleanup
+    glDeleteBuffers(1,&vbo);
+    glDeleteVertexArrays(1,&vao);
     glfwDestroyWindow(window);
     glfwTerminate();
     return 0;
