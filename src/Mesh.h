@@ -6,20 +6,17 @@
 #include <string>
 
 class Mesh {
-
-    public:
+public:
     Mesh();
     ~Mesh();
 
-    void loadFromVertices(const std::vector<float> &vertices, int components = 3);
-    bool loadFromOBJ(const std::string &filePath);
+    void loadFromVertices(const std::vector<float>& vertices, int components = 3);
+    bool loadFromOBJ(const std::string& filepath);
     void draw() const;
 
-    private:
-
-    GLuint VAO,VBO;
+private:
+    GLuint VAO, VBO;
     int vertexCount;
-
 };
 
 #endif

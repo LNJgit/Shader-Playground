@@ -2,13 +2,15 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 
 std::string Shader::loadSource(const std::string& p) const {
     std::ifstream f(p, std::ios::in);
     if (!f.is_open()) {
         std::cerr << "[Shader] Failed to open " << p << '\n';
-        return "";                           // <- returns empty string
+        return "";                      
     }
     std::stringstream ss; ss << f.rdbuf();
     return ss.str();
@@ -58,6 +60,11 @@ void Shader::use() const { glUseProgram(program_); }
 void Shader::setUniform2f(const std::string& name, float v0, float v1) const {
     GLint loc = glGetUniformLocation(program_, name.c_str());
     glUniform2f(loc, v0, v1);
+}
+
+void Shader::setUniformMat4(const std::string& name, const glm::mat4& matrix) const {
+    GLint loc = glGetUniformLocation(program_, name.c_str());
+    glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(matrix));
 }
 
 Shader::~Shader() { glDeleteProgram(program_); }

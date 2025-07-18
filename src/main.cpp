@@ -1,5 +1,6 @@
 #include <glad/gl.h>    
 #include <GLFW/glfw3.h> 
+#include <glm/gtc/matrix_transform.hpp>
 #include <iostream>  
 #include "Shader.h"  
 #include "Mesh.h"
@@ -36,9 +37,16 @@ int main() {
         return -1;
     }
 
-    Mesh mesh;
-    mesh.loadFromVertices(ShapeLibrary::getVertices(ShapeType::Triangle));
+    // enable depth testing
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
 
+    // optionally, cull back faces so you only ever see front faces
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+
+    Mesh mesh;
+    mesh.loadFromOBJ("../../assets/models/armadillo.obj");
 
 
     Shader shader("../../shaders/default.vert", "../../shaders/default.frag");
@@ -52,10 +60,17 @@ int main() {
         int w, h; glfwGetFramebufferSize(window, &w, &h);
         glViewport(0,0,w,h);
         glClearColor(0.1f,0.1f,0.1f,1.f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        glm::mat4 model = glm::mat4(1.0f);
+        glm::mat4 view = glm::lookAt(glm::vec3(2,2,2), glm::vec3(0), glm::vec3(0,1,0));
+        glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)w / h, 0.1f, 100.0f);
+
 
         shader.use();
-        shader.setUniform2f("iResolution", w,h);
+        shader.setUniformMat4("uModel", model);
+        shader.setUniformMat4("uView",  view);
+        shader.setUniformMat4("uProj",  projection);
         mesh.draw();
         glDrawArrays(GL_TRIANGLES, 0, 6);
 

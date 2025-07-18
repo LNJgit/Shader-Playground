@@ -13,7 +13,7 @@ Makefile
 
 # Windows
 Thumbs.db
-*.obj
+#*.obj
 *.pdb
 *.exe
 

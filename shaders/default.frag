@@ -1,9 +1,10 @@
 #version 330 core
+
+in vec3 vNormal;
 out vec4 FragColor;
 
-uniform vec2 iResolution;
-
 void main() {
-    vec2 uv = gl_FragCoord.xy / iResolution ;
-    FragColor = vec4(uv.x, uv.y, 0.5, 1.0);
+    // Normalize and remap from [-1,1] to [0,1]
+    vec3 n = normalize(vNormal) * 0.5 + 0.5;
+    FragColor = vec4(n, 1.0);
 }
