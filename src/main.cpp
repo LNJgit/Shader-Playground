@@ -2,6 +2,8 @@
 #include <GLFW/glfw3.h> 
 #include <iostream>  
 #include "Shader.h"  
+#include "Mesh.h"
+#include "ShapeLibrary.h"
 
 int main() {
     // Initialize GLFW
@@ -34,24 +36,9 @@ int main() {
         return -1;
     }
 
-    float quadVertices[] = {
-        -1.0f,  1.0f, 0.0f,
-        -1.0f, -1.0f, 0.0f,
-        1.0f, -1.0f, 0.0f,
-        -1.0f,  1.0f, 0.0f,
-        1.0f, -1.0f, 0.0f,
-        1.0f,  1.0f, 0.0f
-    };
+    Mesh mesh;
+    mesh.loadFromVertices(ShapeLibrary::getVertices(ShapeType::Triangle));
 
-    GLuint vao, vbo;
-
-    glGenVertexArrays(1,&vao);
-    glGenBuffers(1,&vbo);
-    glBindVertexArray(vao);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, GL_STATIC_DRAW);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3*sizeof(float), (void*)0);
 
 
     Shader shader("../../shaders/default.vert", "../../shaders/default.frag");
@@ -69,15 +56,13 @@ int main() {
 
         shader.use();
         shader.setUniform2f("iResolution", w,h);
-        glBindVertexArray(vao);
+        mesh.draw();
         glDrawArrays(GL_TRIANGLES, 0, 6);
 
         glfwSwapBuffers(window);
     }
 
     // Cleanup
-    glDeleteBuffers(1,&vbo);
-    glDeleteVertexArrays(1,&vao);
     glfwDestroyWindow(window);
     glfwTerminate();
     return 0;
