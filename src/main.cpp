@@ -5,6 +5,7 @@
 #include "Shader.h"  
 #include "Mesh.h"
 #include "ShapeLibrary.h"
+#include "OrbitCamera.h"
 
 int main() {
     // Initialize GLFW
@@ -37,16 +38,22 @@ int main() {
         return -1;
     }
 
-    // enable depth testing
+
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
 
-    // optionally, cull back faces so you only ever see front faces
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
 
+    // construct camera
+    OrbitCamera camera(window);
+
     Mesh mesh;
-    mesh.loadFromOBJ("../../assets/models/armadillo.obj");
+    mesh.loadFromOBJ("../../assets/models/lucy.obj");
+    glm::vec3 center = mesh.getBoundingSphereCentre();
+    float     radius = mesh.getBoundingSphereRadius();
+    camera.setTarget(center);
+    camera.setBoundingRadius(radius);
 
 
     Shader shader("../../shaders/default.vert", "../../shaders/default.frag");
@@ -62,15 +69,13 @@ int main() {
         glClearColor(0.1f,0.1f,0.1f,1.f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        glm::mat4 model = glm::mat4(1.0f);
-        glm::mat4 view = glm::lookAt(glm::vec3(2,2,2), glm::vec3(0), glm::vec3(0,1,0));
-        glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)w / h, 0.1f, 100.0f);
+        camera.updateMatrices(w,h);
 
 
         shader.use();
-        shader.setUniformMat4("uModel", model);
-        shader.setUniformMat4("uView",  view);
-        shader.setUniformMat4("uProj",  projection);
+        shader.setUniformMat4("uModel", camera.model());
+        shader.setUniformMat4("uView",  camera.view());
+        shader.setUniformMat4("uProj",  camera.proj());
         mesh.draw();
         glDrawArrays(GL_TRIANGLES, 0, 6);
 

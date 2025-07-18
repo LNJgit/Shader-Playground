@@ -36,6 +36,28 @@ void Mesh::draw() const {
     glDrawArrays(GL_TRIANGLES, 0, vertexCount);
 }
 
+void Mesh::computeBounds() {
+    minBound = glm::vec3(1e37);
+    maxBound = glm::vec3(1e-37);
+
+    for (size_t i = 0; i < _vertices.size(); i += 8) {
+        glm::vec3 p{ _vertices[i+0], _vertices[i+1], _vertices[i+2] };
+        minBound = glm::min(minBound, p);
+        maxBound = glm::max(maxBound, p);
+    }
+
+    boundSphereCenter = (minBound + maxBound)*0.5f;
+    boundSphereRadius = glm::length(minBound-boundSphereCenter);
+}
+
+glm::vec3 Mesh::getBoundingSphereCentre(){
+    return boundSphereCenter;
+}
+
+float Mesh::getBoundingSphereRadius(){
+    return boundSphereRadius;
+}
+
 bool Mesh::loadFromOBJ(const std::string& path)
 {
     tinyobj::ObjReader reader;
@@ -51,53 +73,87 @@ bool Mesh::loadFromOBJ(const std::string& path)
     const auto& attrib  = reader.GetAttrib();
     const auto& shapes  = reader.GetShapes();
 
-    std::vector<float> vbo;
-    for (const auto& shape : shapes) {
-        size_t index_offset = 0;
-        for (size_t f = 0; f < shape.mesh.num_face_vertices.size(); ++f) {
-            int fv = shape.mesh.num_face_vertices[f];
-            for (size_t v = 0; v < fv; ++v) {
-                tinyobj::index_t idx = shape.mesh.indices[index_offset + v];
+    _vertices.clear();
+    bool hasNormals = !attrib.normals.empty();
 
-                glm::vec3 pos = {
-                    attrib.vertices[3*idx.vertex_index + 0],
-                    attrib.vertices[3*idx.vertex_index + 1],
-                    attrib.vertices[3*idx.vertex_index + 2]
-                };
+        for (const auto& shape : shapes) {
+            size_t index_offset = 0;
+            for (size_t f = 0; f < shape.mesh.num_face_vertices.size(); ++f) {
+                int fv = shape.mesh.num_face_vertices[f];
+                if (fv != 3) {
+                    std::cerr << "Non-triangle face detected. Skipping.\n";
+                    index_offset += fv;
+                    continue;
+                }
 
-                glm::vec2 uv = (idx.texcoord_index >= 0)
-                    ? glm::vec2(
-                        attrib.texcoords[2*idx.texcoord_index + 0],
-                        attrib.texcoords[2*idx.texcoord_index + 1]
-                      )
-                    : glm::vec2(0.0f);
+                glm::vec3 faceVerts[3];
+                glm::vec2 faceUVs[3];
 
-                glm::vec3 nrm = (idx.normal_index >= 0)
-                    ? glm::vec3(
-                        attrib.normals[3*idx.normal_index + 0],
-                        attrib.normals[3*idx.normal_index + 1],
-                        attrib.normals[3*idx.normal_index + 2]
-                      )
-                    : glm::vec3(0.0f);
+                for (size_t v = 0; v < 3; ++v) {
+                    tinyobj::index_t idx = shape.mesh.indices[index_offset + v];
 
-                vbo.insert(vbo.end(), {
-                    pos.x, pos.y, pos.z,
-                    uv.x,  uv.y,
-                    nrm.x, nrm.y, nrm.z
-                });
+                    glm::vec3 pos = {
+                        attrib.vertices[3*idx.vertex_index + 0],
+                        attrib.vertices[3*idx.vertex_index + 1],
+                        attrib.vertices[3*idx.vertex_index + 2]
+                    };
+                    faceVerts[v] = pos;
+
+                    glm::vec2 uv = (idx.texcoord_index >= 0 && !attrib.texcoords.empty())
+                        ? glm::vec2(
+                            attrib.texcoords[2*idx.texcoord_index + 0],
+                            attrib.texcoords[2*idx.texcoord_index + 1]
+                        )
+                        : glm::vec2(0.0f);
+                    faceUVs[v] = uv;
+                }
+
+                // Compute flat normal if needed
+                glm::vec3 nrm(0.0f);
+                if (!hasNormals) {
+                    glm::vec3 edge1 = faceVerts[1] - faceVerts[0];
+                    glm::vec3 edge2 = faceVerts[2] - faceVerts[0];
+                    nrm = glm::normalize(glm::cross(edge1, edge2));
+                }
+
+                // Push the triangle
+                for (int v = 0; v < 3; ++v) {
+                    glm::vec3 pos = faceVerts[v];
+                    glm::vec2 uv = faceUVs[v];
+
+                    glm::vec3 finalNrm = nrm;
+                    if (hasNormals) {
+                        tinyobj::index_t idx = shape.mesh.indices[index_offset + v];
+                        if (idx.normal_index >= 0) {
+                            finalNrm = {
+                                attrib.normals[3*idx.normal_index + 0],
+                                attrib.normals[3*idx.normal_index + 1],
+                                attrib.normals[3*idx.normal_index + 2]
+                            };
+                        }
+                    }
+
+                    _vertices.insert(_vertices.end(), {
+                        pos.x, pos.y, pos.z,
+                        uv.x, uv.y,
+                        finalNrm.x, finalNrm.y, finalNrm.z
+                    });
+                }
+
+                index_offset += fv;
             }
-            index_offset += fv;
         }
-    }
+
+
 
     // Upload interleaved data: pos(3), uv(2), normal(3)
-    vertexCount = static_cast<int>(vbo.size() / 8);
 
+    vertexCount = static_cast<int>(_vertices.size() / 8);
     glBindVertexArray(VAO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER,
-                 vbo.size() * sizeof(float),
-                 vbo.data(),
+                 _vertices.size() * sizeof(float),
+                 _vertices.data(),
                  GL_STATIC_DRAW);
 
     // position attribute
@@ -119,5 +175,7 @@ bool Mesh::loadFromOBJ(const std::string& path)
                           (void*)(5 * sizeof(float)));
 
     glBindVertexArray(0);
+
+    computeBounds();
     return true;
 }
