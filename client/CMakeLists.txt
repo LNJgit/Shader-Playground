@@ -37,6 +37,15 @@ add_subdirectory(external/glfw)
 add_library(glad STATIC external/glad/src/gl.c)
 target_include_directories(glad PUBLIC external/glad/include)
 
+# ─── CPR ──────────────────────────────────────────────────────────────
+option(CPR_BUILD_TESTS "Don't build CPR tests" OFF)
+option(CPR_BUILD_EXAMPLES "Don't build CPR examples" OFF)
+option(CPR_USE_SYSTEM_CURL "Use system curl" OFF)
+add_subdirectory(external/cpr)
+
+# ─── Include JSON (header-only) ───────────────────────────────────────
+target_include_directories(${PROJECT_NAME} PRIVATE external/json/include)
+
 # ─── ImGui ────────────────────────────────────────────────────────────────────
 file(GLOB IMGUI_SRC
     external/imgui/*.cpp
@@ -47,7 +56,11 @@ add_library(imgui ${IMGUI_SRC})
 target_include_directories(imgui PUBLIC external/imgui external/imgui/backends)
 
 # ─── Link Everything ──────────────────────────────────────────────────────────
-target_link_libraries(${PROJECT_NAME} PRIVATE glfw glad imgui)
+target_link_libraries(${PROJECT_NAME}
+    PRIVATE
+        glfw glad imgui
+        cpr
+)
 
 # ─── Platform-Specific OpenGL Linking ─────────────────────────────────────────
 if (WIN32)

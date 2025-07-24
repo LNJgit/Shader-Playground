@@ -2,19 +2,26 @@
 #include <GLFW/glfw3.h> 
 #include <glm/gtc/matrix_transform.hpp>
 #include <iostream>  
+
 #include "Shader.h"  
-#include "Mesh.h"
-#include "ShapeLibrary.h"
-#include "OrbitCamera.h"
+#include "Application.h"
 
 int main() {
-    // Initialize GLFW
+    // ── Remote API Connectivity ─────────────────────────
+    RemoteAPI api;
+    if (!api.ping()) {
+        std::cerr << "Failed to connect to the remote API.\n";
+        std::cout << "Press any key to exit.\n";
+        std::cin.get();
+        return -1;
+    }
+
+    // ── GLFW Init ───────────────────────────────────────
     if (!glfwInit()) {
         std::cerr << "Failed to initialize GLFW\n";
         return -1;
     }
 
-    // Set OpenGL version to 3.3 Core
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -23,7 +30,6 @@ int main() {
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // For macOS
 #endif
 
-    // Create a window
     GLFWwindow* window = glfwCreateWindow(800, 600, "Shader Playground", nullptr, nullptr);
     if (!window) {
         std::cerr << "Failed to create GLFW window\n";
@@ -32,57 +38,34 @@ int main() {
     }
 
     glfwMakeContextCurrent(window);
-    // Load GL functions
+
     if (!gladLoadGL((GLADloadfunc)glfwGetProcAddress)) {
         std::cerr << "Failed to initialize GLAD\n";
         return -1;
     }
 
-
     glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LESS);
-
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
+    glDepthFunc(GL_LESS);
 
-    // construct camera
-    OrbitCamera camera(window);
-
-    Mesh mesh;
-    mesh.loadFromOBJ("../../../assets/models/lucy.obj");
-    glm::vec3 center = mesh.getBoundingSphereCentre();
-    float     radius = mesh.getBoundingSphereRadius();
-    camera.setTarget(center);
-    camera.setBoundingRadius(radius);
-
-
+    // ── Shader and App Setup ────────────────────────────
     Shader shader("../../../assets/shaders/default.vert", "../../../assets/shaders/default.frag");
+    Application app(window);
 
-
-
-    // Main loop
+    // ── Main Loop ───────────────────────────────────────
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
 
-        int w, h; glfwGetFramebufferSize(window, &w, &h);
-        glViewport(0,0,w,h);
-        glClearColor(0.1f,0.1f,0.1f,1.f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        camera.updateMatrices(w,h);
-
-
         shader.use();
-        shader.setUniformMat4("uModel", camera.model());
-        shader.setUniformMat4("uView",  camera.view());
-        shader.setUniformMat4("uProj",  camera.proj());
-        mesh.draw();
-        glDrawArrays(GL_TRIANGLES, 0, 6);
+        shader.setUniformMat4("uModel", glm::mat4(1.0f));
+        shader.setUniformMat4("uView",  app.getCamera().view());
+        shader.setUniformMat4("uProj",  app.getCamera().proj());
 
+        app.update(); // handles mesh draw + model switching
         glfwSwapBuffers(window);
     }
 
-    // Cleanup
     glfwDestroyWindow(window);
     glfwTerminate();
     return 0;
