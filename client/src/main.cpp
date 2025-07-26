@@ -9,12 +9,6 @@
 int main() {
     // ── Remote API Connectivity ─────────────────────────
     RemoteAPI api;
-    if (!api.ping()) {
-        std::cerr << "Failed to connect to the remote API.\n";
-        std::cout << "Press any key to exit.\n";
-        std::cin.get();
-        return -1;
-    }
 
     // ── GLFW Init ───────────────────────────────────────
     if (!glfwInit()) {
@@ -62,7 +56,7 @@ int main() {
         shader.setUniformMat4("uView",  app.getCamera().view());
         shader.setUniformMat4("uProj",  app.getCamera().proj());
 
-        app.update(); // handles mesh draw + model switching
+        app.update(); 
         glfwSwapBuffers(window);
     }
 

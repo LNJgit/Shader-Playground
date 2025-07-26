@@ -22,13 +22,14 @@ void Application::switchModel(const std::string& name) {
     float radius     = mesh.getBoundingSphereRadius();
     camera.setTarget(center);
     camera.setBoundingRadius(radius);
+    camera.resetCamera();
     lastModel = name;
 
     std::cout << "[App] Switched model to: " << name << "\n";
 }
 
 void Application::pollModelChange() {
-    std::ifstream file("current_model.txt");
+    std::ifstream file("../../../assets/current_model.txt");
     if (!file.is_open()) return;
 
     std::string name;

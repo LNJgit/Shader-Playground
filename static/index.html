@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Model Switcher</title>
+</head>
+<body>
+  <h1>Switch 3D Model</h1>
+
+  <!-- Step 2: Dropdown element (populated by JS) -->
+  <select id="model-select"></select>
+  <button onclick="switchModel()">Switch</button>
+
+  <div id="status"></div>
+
+  <script>
+    const select = document.getElementById('model-select');
+
+    async function loadModels() {
+    const res = await fetch('http://127.0.0.1:8000/models/');
+    const data = await res.json();
+
+    // Loop over the model names and add them as options
+    data.models.forEach(model => {
+        const option = document.createElement('option');
+        option.value = model;
+        option.textContent = model;
+        select.appendChild(option);
+    });
+    }
+
+    // Load models when the page loads
+    loadModels();
+    async function switchModel() {
+    const modelName = select.value;
+
+    const res = await fetch('http://127.0.0.1:8000/switch_model/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model_name: modelName })
+    });
+
+    const result = await res.json();
+    document.getElementById('status').textContent = `Switched to: ${result.model_name || modelName}`;
+    }
+  </script>
+</body>
+</html>

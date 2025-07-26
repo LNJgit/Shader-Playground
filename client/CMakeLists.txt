@@ -26,7 +26,7 @@ include_directories(
     external/imgui
     external/imgui/backends
     external/glm
-    external/tinyobjloader
+    external/tinyobjloader 
     src
 )
 

@@ -22,6 +22,8 @@ public:
         _radius = std::max(_radius, _minRadius);
     }
 
+    void resetCamera();
+
     // Getters for shaders
     const glm::mat4& view() const noexcept { return _view; }
     const glm::mat4& proj() const noexcept { return _proj; }

@@ -57,7 +57,7 @@ void OrbitCamera::onScroll(double /*xoff*/, double yoff) {
 }
 
 void OrbitCamera::updateMatrices(int fbWidth, int fbHeight) {
-    // never let camera come closer than needed to see the whole sphere
+
     _radius = std::max(_radius, _minRadius);
 
     float aspect = float(fbWidth) / float(fbHeight);
@@ -76,3 +76,6 @@ void OrbitCamera::updateMatrices(int fbWidth, int fbHeight) {
 }
 
 
+void OrbitCamera::resetCamera()  {
+        _radius = _boundingRadius / std::sin(_fovY * 0.5f);
+    }
