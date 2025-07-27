@@ -6,6 +6,7 @@
 #include "Mesh.h"
 #include "ShapeLibrary.h"
 #include "OrbitCamera.h"
+#include "Application.h"
 
 int main() {
     // Initialize GLFW
@@ -39,48 +40,13 @@ int main() {
     }
 
 
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LESS);
-
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
-
-    // construct camera
-    OrbitCamera camera(window);
-
-    Mesh mesh;
-    mesh.loadFromOBJ("../../assets/models/lucy.obj");
-    glm::vec3 center = mesh.getBoundingSphereCentre();
-    float     radius = mesh.getBoundingSphereRadius();
-    camera.setTarget(center);
-    camera.setBoundingRadius(radius);
+    Application app(window);
+    app.init();
 
 
-    Shader shader("../../shaders/default.vert", "../../shaders/default.frag");
+    // Main render loop
+    app.run();
 
-
-
-    // Main loop
-    while (!glfwWindowShouldClose(window)) {
-        glfwPollEvents();
-
-        int w, h; glfwGetFramebufferSize(window, &w, &h);
-        glViewport(0,0,w,h);
-        glClearColor(0.1f,0.1f,0.1f,1.f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        camera.updateMatrices(w,h);
-
-
-        shader.use();
-        shader.setUniformMat4("uModel", camera.model());
-        shader.setUniformMat4("uView",  camera.view());
-        shader.setUniformMat4("uProj",  camera.proj());
-        mesh.draw();
-        glDrawArrays(GL_TRIANGLES, 0, 6);
-
-        glfwSwapBuffers(window);
-    }
 
     // Cleanup
     glfwDestroyWindow(window);
