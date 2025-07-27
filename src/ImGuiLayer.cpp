@@ -31,15 +31,9 @@ void ImGuiLayer::begin() {
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-    // Draw model selector using parent data
-    ImGui::Begin("Model Selector");
+    createModelSelector();
+    createShaderSelector();
 
-    for (const auto& model : parent->availableModels) {
-        if (ImGui::Button(model.name.c_str())) {
-            std::string fullPath = parent->modelPath + "/" + model.file;
-            parent->loadModel(fullPath);
-        }
-    }
 
     ImGui::End();
 }
@@ -57,4 +51,27 @@ void ImGuiLayer::shutdown() {
     ImGui::DestroyContext();
 
     initialized = false;
+}
+
+void ImGuiLayer::createModelSelector() {
+    ImGui::Begin("Model Selector");
+
+    for (const auto& model : parent->availableModels) {
+        if (ImGui::Button(model.name.c_str())) {
+            std::string fullPath = parent->modelPath + "/" + model.file;
+            parent->loadModel(fullPath);
+        }
+    }
+}
+
+void ImGuiLayer::createShaderSelector() {
+    ImGui::Begin("Shader Selector");
+
+    for (const auto& shader : parent->availableShaders) {
+        if (ImGui::Button(shader.name.c_str())) {
+            parent->loadShader(shader.vertexPath, shader.fragmentPath);
+        }
+    }
+
+    ImGui::End();
 }

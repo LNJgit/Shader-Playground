@@ -12,6 +12,8 @@ public:
     void begin();
     void end();
     void shutdown();
+    void createModelSelector();
+    void createShaderSelector();
 
 private:
     bool initialized = false;

@@ -58,6 +58,7 @@ void Application::init() {
 
     loadModel(modelPath + "/Armadillo.obj");
     loadAvailableModels();
+    loadAvailableShaders();
 }
 
 
@@ -122,4 +123,35 @@ void Application::loadAvailableModels() {
         availableModels.push_back(modelInfo);
     }
 
+}
+
+void Application::loadAvailableShaders() {
+    std::ifstream shaderFile(shaderPath + "/shaders.json");
+    if (!shaderFile) {
+        std::cerr << "Error: Could not open shaders.json\n";
+        return;
+    }
+    nlohmann::json shaderJson;
+    shaderFile >> shaderJson; 
+
+    for (const auto& shader : shaderJson) {
+        ShaderInfo shaderInfo;
+        shaderInfo.name = shader["name"].get<std::string>();
+        shaderInfo.vertexPath = shader["vertex_path"].get<std::string>();
+        shaderInfo.fragmentPath = shader["fragment_path"].get<std::string>();
+        availableShaders.push_back(shaderInfo);
+    }
+}
+
+void Application::loadShader(const std::string& vertPath, const std::string& fragPath) {
+    if (currentShader) {
+        currentShader->~Shader(); // Explicitly call destructor to clean up
+    }
+
+    currentShader = std::make_unique<Shader>(vertPath, fragPath);
+    if (!currentShader) {
+        std::cerr << "Error: Failed to load shader from " << vertPath << " and " << fragPath << "\n";
+    } else {
+        std::cout << "Shader loaded successfully: " << vertPath << ", " << fragPath << "\n";
+    }
 }

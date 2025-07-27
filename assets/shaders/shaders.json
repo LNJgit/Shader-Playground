@@ -1,0 +1,12 @@
+[
+    {
+        "name": "default",
+        "vertex_path": "../../assets/shaders/default.vert",
+        "fragment_path": "../../assets/shaders/default.frag"
+    },
+    {
+        "name": "phong",
+        "vertex_path": "../../assets/shaders/phong.vert",
+        "fragment_path": "../../assets/shaders/phong.frag"
+    }
+]
