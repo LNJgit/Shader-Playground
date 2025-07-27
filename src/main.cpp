@@ -7,6 +7,8 @@
 #include "ShapeLibrary.h"
 #include "OrbitCamera.h"
 #include "Application.h"
+#include <imgui.h>
+#include <imgui_impl_glfw.h>
 
 int main() {
     // Initialize GLFW
@@ -43,7 +45,7 @@ int main() {
     Application app(window);
     app.init();
 
-
+    
     // Main render loop
     app.run();
 

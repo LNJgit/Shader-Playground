@@ -28,6 +28,7 @@ include_directories(
 
 # Add external dependencies
 add_subdirectory(external/glfw)
+add_subdirectory(external/json)
 
 # GLAD (single file)
 add_library(glad external/glad/src/gl.c)
@@ -43,7 +44,7 @@ add_library(imgui ${IMGUI_SRC})
 target_include_directories(imgui PUBLIC external/imgui external/imgui/backends)
 
 # Link everything together
-target_link_libraries(${PROJECT_NAME} glfw glad imgui)
+target_link_libraries(${PROJECT_NAME} glfw glad imgui nlohmann_json::nlohmann_json)
 
 # Platform-specific
 if (APPLE)

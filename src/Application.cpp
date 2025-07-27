@@ -3,6 +3,7 @@
 #include <fstream>
 
 
+
 /**
  * @brief Constructs an Application instance with the given GLFW window.
  *
@@ -23,6 +24,15 @@ Application::Application(GLFWwindow* window)
 
     glfwGetWindowSize(window, &width, &height);
 
+    gui = std::make_unique<ImGuiLayer>(this);
+
+}
+
+Application::~Application() {
+    gui->shutdown();
+    if (currentShader) {
+        currentShader->~Shader();
+    }
 }
 
 /**
@@ -37,31 +47,19 @@ Application::Application(GLFWwindow* window)
 void Application::init() {
     currentShader = std::make_unique<Shader>(shaderPath + "/default.vert", shaderPath + "/default.frag");
 
-    pollModelLoad(); 
 
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
 
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
+
+    gui->init(window);
+
+    loadModel(modelPath + "/Armadillo.obj");
+    loadAvailableModels();
 }
 
-void Application::pollModelLoad() {
-    std::ifstream modelFile(modelPath + "/current_model.txt");
-    if (!modelFile) {
-        std::cerr << "Error: Could not open current_model.txt\n";
-        return;
-    }
-
-    std::string modelName;
-    std::getline(modelFile, modelName);
-    currentModelPath = modelPath + "/" + modelName;
-
-    if (currentModelPath != lastLoadedModelPath) {
-        std::cout << "Model change detected. Loading: " << modelName << "\n";
-        loadModel(currentModelPath);
-    }
-}
 
 void Application::loadModel(const std::string& path) {
     if (!currentMesh.loadFromOBJ(path)) {
@@ -83,7 +81,9 @@ void Application::loadModel(const std::string& path) {
 void Application::run() {
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
-        pollModelLoad(); 
+
+        gui->begin();
+        
 
         glfwGetFramebufferSize(window, &width, &height);
         glViewport(0, 0, width, height);
@@ -99,6 +99,27 @@ void Application::run() {
 
         currentMesh.draw();
 
+        gui->end();
+
         glfwSwapBuffers(window);
     }
+}
+
+
+void Application::loadAvailableModels() {
+    std::ifstream modelFile(modelPath + "/models.json");
+    if (!modelFile) {
+        std::cerr << "Error: Could not open models.json\n";
+        return;
+    }
+    nlohmann::json modelJson;
+    modelFile >> modelJson; 
+
+    for (const auto& model :modelJson) {
+        ModelInfo modelInfo;
+        modelInfo.name = model["name"].get<std::string>();
+        modelInfo.file = model["file"].get<std::string>();
+        availableModels.push_back(modelInfo);
+    }
+
 }

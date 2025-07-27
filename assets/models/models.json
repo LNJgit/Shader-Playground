@@ -1,0 +1,5 @@
+[
+  { "name": "Lucy",  "file": "lucy.obj" },
+  { "name": "Armadillo", "file": "armadillo.obj" },
+  { "name": "Sphere","file": "sphere.obj" }
+]
